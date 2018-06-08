@@ -1,5 +1,7 @@
 # mayavi
 
+![Mayavi concept](mayavi-concept.jpg)
+
 A BLE OLED watch for Maya.
 
 ## Specifications
