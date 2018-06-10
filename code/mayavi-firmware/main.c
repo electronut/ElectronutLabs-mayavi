@@ -85,6 +85,8 @@
 
 #include "nrf_delay.h"
 
+#include "nrf_drv_gpiote.h"
+
 #include "SSD1306.h"
 #include "Adafruit_GFX.h"
 
@@ -836,6 +838,29 @@ void show_time()
     SSD1306_display();
 }
 
+void button_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
+{
+    //nrf_drv_gpiote_out_toggle(PIN_OUT);
+}
+
+/**@brief Function for initialising buttons
+ */
+static void buttons_init()
+{
+    ret_code_t err_code;
+
+    err_code = nrf_drv_gpiote_init();
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
+    in_config.pull = NRF_GPIO_PIN_PULLUP;
+
+    err_code = nrf_drv_gpiote_in_init(BSP_BUTTON_0, &in_config, button_handler);
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_gpiote_in_event_enable(BSP_BUTTON_0, true);
+}
+
 /**@brief Function for application main entry.
  */
 int main(void)
@@ -863,6 +888,8 @@ int main(void)
 
     twi_init();
 
+    buttons_init();
+    
     SSD1306_begin(SSD1306_SWITCHCAPVCC, 0x3C, false);
     Adafruit_GFX_init(SSD1306_LCDWIDTH, SSD1306_LCDHEIGHT, SSD1306_drawPixel);
 

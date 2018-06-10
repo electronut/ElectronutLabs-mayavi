@@ -58,6 +58,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/bsp/bsp_btn_ble.c \
   $(PROJ_DIR)/SSD1306/Adafruit_GFX.c \
   $(PROJ_DIR)/SSD1306/SSD1306.c \
+  $(PROJ_DIR)/LIS2DH12.c \
   $(PROJ_DIR)/main.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
