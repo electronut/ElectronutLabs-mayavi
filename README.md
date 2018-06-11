@@ -6,11 +6,12 @@ A BLE OLED watch for Maya.
 
 ## Specifications
 
-- Nordic nRF52832 BLE MDBT42v Raytac Module
+- Nordic nRF52832 BLE SoC
+- Chip antenna
 - 0.96" OLED display
 - ST Micro LIS2D12 accelerometer
 - 2 x [Side mounted buttons][1]
-- 200 mAh LiPo battery
+- 140 mAh LiPo battery
 - Buzzer
 
 
