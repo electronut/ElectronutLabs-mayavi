@@ -87,10 +87,13 @@
 
 #include "nrf_drv_gpiote.h"
 
+#include "nrf_drv_rtc.h"
+#include "nrf_drv_clock.h"
+
 #include "SSD1306.h"
 #include "Adafruit_GFX.h"
 
-#define DEVICE_NAME                     "Nordic_Template"                       /**< Name of device. Will be included in the advertising data. */
+#define DEVICE_NAME                     "Mayavi"                       /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                   /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
 
@@ -752,6 +755,7 @@ static void power_management_init(void)
 }
 
 
+
 /**@brief Function for handling the idle state (main loop).
  *
  * @details If there is no pending log operation, then sleep until next the next event occurs.
@@ -804,8 +808,8 @@ void twi_init (void)
     ret_code_t err_code;
 
     const nrf_drv_twi_config_t twi_config = {
-       .scl                = ARDUINO_SCL_PIN,
-       .sda                = ARDUINO_SDA_PIN,
+       .scl                = 12,
+       .sda                = 13,
        .frequency          = NRF_DRV_TWI_FREQ_100K,
        .interrupt_priority = APP_IRQ_PRIORITY_HIGH,
        .clear_bus_init     = false
@@ -817,11 +821,14 @@ void twi_init (void)
     nrf_drv_twi_enable(&m_twi_master);
 }
 
+static volatile uint16_t g_time_count = 0;
+
+static volatile uint8_t g_b_update = 0;
+
 void show_time()
 {
-    static uint16_t count = 0;
     char str_count[16];
-    sprintf(str_count, "%d", count++);
+    sprintf(str_count, "%d", g_time_count);
 
     Adafruit_GFX_setTextSize(2);
     Adafruit_GFX_setTextColor(WHITE, BLACK);
@@ -855,10 +862,78 @@ static void buttons_init()
     nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
     in_config.pull = NRF_GPIO_PIN_PULLUP;
 
-    err_code = nrf_drv_gpiote_in_init(BSP_BUTTON_0, &in_config, button_handler);
+    err_code = nrf_drv_gpiote_in_init(14, &in_config, button_handler);
     APP_ERROR_CHECK(err_code);
 
-    nrf_drv_gpiote_in_event_enable(BSP_BUTTON_0, true);
+    nrf_drv_gpiote_in_event_enable(14, true);
+}
+
+const nrf_drv_rtc_t rtc = NRF_DRV_RTC_INSTANCE(2); /**< Declaring an instance of nrf_drv_rtc for RTC0. */
+#define COMPARE_COUNTERTIME  (3UL)                                        /**< Get Compare event COMPARE_TIME seconds after the counter starts from 0. */
+static volatile uint8_t g_rtc_tick_counter = 0;
+
+/** @brief: Function for handling the RTC0 interrupts.
+ * Triggered on TICK and COMPARE0 match.
+ */
+static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
+{
+    if (int_type == NRF_DRV_RTC_INT_COMPARE0)
+    {
+        //nrf_gpio_pin_toggle(COMPARE_EVENT_OUTPUT);
+        
+    }
+    else if (int_type == NRF_DRV_RTC_INT_TICK)
+    {
+        //nrf_gpio_pin_toggle(TICK_EVENT_OUTPUT);
+        // RTC tick is set to 8 Hz, the minimum
+        // so use a counter to get 1 Hz
+        if (g_rtc_tick_counter == 8) 
+        {
+            g_time_count++;
+            g_b_update = 1;
+            g_rtc_tick_counter = 0;
+        }   
+        else 
+        {
+            g_rtc_tick_counter++;
+        }
+    }
+}
+/** @brief Function starting the internal LFCLK XTAL oscillator.
+ */
+static void lfclk_config(void)
+{
+    ret_code_t err_code = nrf_drv_clock_init();
+    APP_ERROR_CHECK(err_code);
+
+    nrf_drv_clock_lfclk_request(NULL);
+}
+
+/** @brief Function initialization and configuration of RTC driver instance.
+ */
+static void rtc_config(void)
+{
+    uint32_t err_code;
+
+    //Initialize RTC instance
+    nrf_drv_rtc_config_t config = NRF_DRV_RTC_DEFAULT_CONFIG;
+
+    // f_RTC (kHz) = 32.768 / (PRESCALER + 1)
+    // PRESCALER is 12 bits
+
+    config.prescaler = 4095;
+    err_code = nrf_drv_rtc_init(&rtc, &config, rtc_handler);
+    APP_ERROR_CHECK(err_code);
+
+    //Enable tick event & interrupt
+    nrf_drv_rtc_tick_enable(&rtc,true);
+
+    //Set compare channel to trigger interrupt after COMPARE_COUNTERTIME seconds
+    err_code = nrf_drv_rtc_cc_set(&rtc,0,COMPARE_COUNTERTIME * 8,true);
+    APP_ERROR_CHECK(err_code);
+
+    //Power on RTC instance
+    nrf_drv_rtc_enable(&rtc);
 }
 
 /**@brief Function for application main entry.
@@ -866,6 +941,8 @@ static void buttons_init()
 int main(void)
 {
     bool erase_bonds;
+
+    lfclk_config();
 
     // Initialize.
     log_init();
@@ -888,8 +965,10 @@ int main(void)
 
     twi_init();
 
-    buttons_init();
-    
+    //buttons_init();
+
+    rtc_config();
+
     SSD1306_begin(SSD1306_SWITCHCAPVCC, 0x3C, false);
     Adafruit_GFX_init(SSD1306_LCDWIDTH, SSD1306_LCDHEIGHT, SSD1306_drawPixel);
 
@@ -904,10 +983,15 @@ int main(void)
     // Enter main loop.
     for (;;)
     {
-        show_time();
-        nrf_delay_ms(1000);
+        if(g_b_update) 
+        {
+            show_time();
+            g_b_update = 0;
+        }
+        
+        //nrf_delay_ms(10);
 
-        //idle_state_handle();
+        idle_state_handle();
     }
 }
 
