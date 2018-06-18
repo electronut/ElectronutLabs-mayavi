@@ -59,6 +59,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/bsp/bsp_btn_ble.c \
   $(PROJ_DIR)/SSD1306/Adafruit_GFX.c \
   $(PROJ_DIR)/SSD1306/SSD1306.c \
+  $(PROJ_DIR)/mwatch.c \
   $(PROJ_DIR)/main.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
@@ -157,6 +158,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/nfc/t4t_parser/apdu \
   $(SDK_ROOT)/components/libraries/util \
   ../config \
+  $(PROJ_DIR)/ \
   $(PROJ_DIR)/SSD1306 \
   $(SDK_ROOT)/components/libraries/usbd/class/cdc \
   $(SDK_ROOT)/components/libraries/csense \

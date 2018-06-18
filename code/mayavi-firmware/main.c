@@ -95,6 +95,8 @@
 #include "SSD1306.h"
 #include "Adafruit_GFX.h"
 
+#include "mwatch.h"
+
 #define DEVICE_NAME                     "Mayavi"                       /**< Name of device. Will be included in the advertising data. */
 #define MANUFACTURER_NAME               "NordicSemiconductor"                   /**< Manufacturer. Will be passed to Device Information Service. */
 #define APP_ADV_INTERVAL                300                                     /**< The advertising interval (in units of 0.625 ms. This value corresponds to 187.5 ms). */
@@ -849,6 +851,8 @@ static void advertising_start(bool erase_bonds)
 /* TWI instance. */
 const nrf_drv_twi_t m_twi_master = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
 
+/* Watch instance */
+mwatch_cfg_t g_mwatch;
 
 /**
  * @brief TWI initialization.
@@ -869,30 +873,6 @@ void twi_init (void)
     APP_ERROR_CHECK(err_code);
 
     nrf_drv_twi_enable(&m_twi_master);
-}
-
-static volatile uint16_t g_time_count = 0;
-
-static volatile uint8_t g_b_update = 0;
-
-void show_time()
-{
-    char str_count[16];
-    sprintf(str_count, "%d", g_time_count);
-
-    Adafruit_GFX_setTextSize(2);
-    Adafruit_GFX_setTextColor(WHITE, BLACK);
-    Adafruit_GFX_setCursor(10, 10);
-
-    //Adafruit_GFX_drawLine(0, 0, 10, 10, WHITE);
-
-    //Adafruit_GFX_write('a');
-
-    for (int i = 0; i < strlen(str_count); i++) 
-    {
-        Adafruit_GFX_write(str_count[i]);
-    }
-    SSD1306_display();
 }
 
 void button_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
@@ -939,8 +919,8 @@ static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
         // so use a counter to get 1 Hz
         if (g_rtc_tick_counter == 8) 
         {
-            g_time_count++;
-            g_b_update = 1;
+            // call tick on watch
+            mwatch_tick(&g_mwatch);
             g_rtc_tick_counter = 0;
         }   
         else 
@@ -1019,13 +999,8 @@ int main(void)
 
     rtc_config();
 
-    SSD1306_begin(SSD1306_SWITCHCAPVCC, 0x3C, false);
-    Adafruit_GFX_init(SSD1306_LCDWIDTH, SSD1306_LCDHEIGHT, SSD1306_drawPixel);
-
-    SSD1306_clearDisplay();
-    Adafruit_GFX_drawBitmap(0, 0,  el_logo, 128, 64, 1);
-    SSD1306_display();
-    nrf_delay_ms(1000);
+    // initialise watch
+    mwatch_init(&g_mwatch, nrf_delay_ms);
 
     SSD1306_clearDisplay();
     SSD1306_display();
@@ -1033,13 +1008,10 @@ int main(void)
     // Enter main loop.
     for (;;)
     {
-        if(g_b_update) 
+        if (mwatch_is_refresh_pending(&g_mwatch)) 
         {
-            show_time();
-            g_b_update = 0;
+            mwatch_refresh_display(&g_mwatch);
         }
-        
-        //nrf_delay_ms(10);
 
         idle_state_handle();
     }
