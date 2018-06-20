@@ -126,3 +126,13 @@ void mwatch_refresh_display(mwatch_cfg_t* p_mwatch_cfg)
     // reset pending display
     p_mwatch_cfg->b_pending_refresh = false;
 }
+
+/*!
+ * @brief Sleep - go to power save mode 
+ * @param[in] @mwatch_cfg_t
+ * @return void
+ */
+void mwatch_sleep(mwatch_cfg_t* p_mwatch_cfg)
+{
+    
+}

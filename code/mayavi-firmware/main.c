@@ -140,7 +140,20 @@ static ble_uuid_t m_adv_uuids[]          =                                      
 };
 
 
+APP_TIMER_DEF(watch_tick_timer_id);
+
 static void advertising_start(bool erase_bonds);
+
+/* Watch instance */
+mwatch_cfg_t g_mwatch;
+
+/**@brief timeout handler for watch tick timer
+ */
+static void watch_tick_timeout_handler(void *p_context)
+{
+    // call tick on watch
+    mwatch_tick(&g_mwatch);
+}
 
 
 /**@brief Callback function for asserts in the SoftDevice.
@@ -267,7 +280,14 @@ static void timers_init(void)
     ret_code_t err_code = app_timer_init();
     APP_ERROR_CHECK(err_code);
 
+        
     // Create timers.
+
+    // create watch tick timer
+    err_code = app_timer_create(&watch_tick_timer_id, 
+        APP_TIMER_MODE_REPEATED, watch_tick_timeout_handler);
+        APP_ERROR_CHECK(err_code);
+    APP_ERROR_CHECK(err_code);
 
     /* YOUR_JOB: Create any timers to be used by the application.
                  Below is an example of how to create a timer.
@@ -512,6 +532,12 @@ static void application_timers_start(void)
        ret_code_t err_code;
        err_code = app_timer_start(m_app_timer_id, TIMER_INTERVAL, NULL);
        APP_ERROR_CHECK(err_code); */
+
+    ret_code_t err_code;
+    // start watch tick timer
+    err_code = app_timer_start(watch_tick_timer_id, APP_TIMER_TICKS(1000),
+        NULL);
+    APP_ERROR_CHECK(err_code);
 
 }
 
@@ -851,8 +877,6 @@ static void advertising_start(bool erase_bonds)
 /* TWI instance. */
 const nrf_drv_twi_t m_twi_master = NRF_DRV_TWI_INSTANCE(TWI_INSTANCE_ID);
 
-/* Watch instance */
-mwatch_cfg_t g_mwatch;
 
 /**
  * @brief TWI initialization.
@@ -898,37 +922,6 @@ static void buttons_init()
     nrf_drv_gpiote_in_event_enable(14, true);
 }
 
-const nrf_drv_rtc_t rtc = NRF_DRV_RTC_INSTANCE(2); /**< Declaring an instance of nrf_drv_rtc for RTC0. */
-#define COMPARE_COUNTERTIME  (3UL)                                        /**< Get Compare event COMPARE_TIME seconds after the counter starts from 0. */
-static volatile uint8_t g_rtc_tick_counter = 0;
-
-/** @brief: Function for handling the RTC0 interrupts.
- * Triggered on TICK and COMPARE0 match.
- */
-static void rtc_handler(nrf_drv_rtc_int_type_t int_type)
-{
-    if (int_type == NRF_DRV_RTC_INT_COMPARE0)
-    {
-        //nrf_gpio_pin_toggle(COMPARE_EVENT_OUTPUT);
-        
-    }
-    else if (int_type == NRF_DRV_RTC_INT_TICK)
-    {
-        //nrf_gpio_pin_toggle(TICK_EVENT_OUTPUT);
-        // RTC tick is set to 8 Hz, the minimum
-        // so use a counter to get 1 Hz
-        if (g_rtc_tick_counter == 8) 
-        {
-            // call tick on watch
-            mwatch_tick(&g_mwatch);
-            g_rtc_tick_counter = 0;
-        }   
-        else 
-        {
-            g_rtc_tick_counter++;
-        }
-    }
-}
 /** @brief Function starting the internal LFCLK XTAL oscillator.
  */
 static void lfclk_config(void)
@@ -937,33 +930,6 @@ static void lfclk_config(void)
     APP_ERROR_CHECK(err_code);
 
     nrf_drv_clock_lfclk_request(NULL);
-}
-
-/** @brief Function initialization and configuration of RTC driver instance.
- */
-static void rtc_config(void)
-{
-    uint32_t err_code;
-
-    //Initialize RTC instance
-    nrf_drv_rtc_config_t config = NRF_DRV_RTC_DEFAULT_CONFIG;
-
-    // f_RTC (kHz) = 32.768 / (PRESCALER + 1)
-    // PRESCALER is 12 bits
-
-    config.prescaler = 4095;
-    err_code = nrf_drv_rtc_init(&rtc, &config, rtc_handler);
-    APP_ERROR_CHECK(err_code);
-
-    //Enable tick event & interrupt
-    nrf_drv_rtc_tick_enable(&rtc,true);
-
-    //Set compare channel to trigger interrupt after COMPARE_COUNTERTIME seconds
-    err_code = nrf_drv_rtc_cc_set(&rtc,0,COMPARE_COUNTERTIME * 8,true);
-    APP_ERROR_CHECK(err_code);
-
-    //Power on RTC instance
-    nrf_drv_rtc_enable(&rtc);
 }
 
 /**@brief Function for application main entry.
@@ -996,8 +962,6 @@ int main(void)
     twi_init();
 
     //buttons_init();
-
-    rtc_config();
 
     // initialise watch
     mwatch_init(&g_mwatch, nrf_delay_ms);

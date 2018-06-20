@@ -66,6 +66,12 @@ bool mwatch_is_refresh_pending(mwatch_cfg_t* p_mwatch_cfg);
  */
 void mwatch_refresh_display(mwatch_cfg_t* p_mwatch_cfg);
 
+/*!
+ * @brief Sleep - go to power save mode 
+ * @param[in] @mwatch_cfg_t
+ * @return void
+ */
+void mwatch_sleep(mwatch_cfg_t* p_mwatch_cfg);
 
 #ifdef __cplusplus 
 }
