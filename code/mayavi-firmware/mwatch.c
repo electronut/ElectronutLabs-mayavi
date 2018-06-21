@@ -10,10 +10,14 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "mwatch_melody.h"
 #include "mwatch.h"
 
 #include "SSD1306.h"
 #include "SSD1306/Adafruit_GFX.h"
+
+// melody module configuration 
+static mwatch_melody_config_t g_melody_config;
 
 /*!
  * @brief Initialise watch module
@@ -40,6 +44,12 @@ void mwatch_init(mwatch_cfg_t* p_mwatch_cfg, void (*f)(uint32_t))
 
     // set display flag
     p_mwatch_cfg->b_pending_refresh = true;
+
+    // set melody pin 
+    g_melody_config.pin = 20;
+
+    // initialise melody module
+    mwatch_melody_init(&g_melody_config);
 }
 
 
@@ -83,6 +93,11 @@ void mwatch_refresh_display(mwatch_cfg_t* p_mwatch_cfg)
             SSD1306_clearDisplay();
             Adafruit_GFX_drawBitmap(0, 0,  el_logo, 128, 64, 1);
             SSD1306_display();
+
+            // play melody
+            mwatch_melody_t melody;
+
+            mwatch_melody_play(&g_melody_config, &melody);
 
             // delay
             p_mwatch_cfg->delay_ms(1000);
@@ -134,5 +149,5 @@ void mwatch_refresh_display(mwatch_cfg_t* p_mwatch_cfg)
  */
 void mwatch_sleep(mwatch_cfg_t* p_mwatch_cfg)
 {
-    
+
 }
