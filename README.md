@@ -14,6 +14,8 @@ A BLE OLED watch for Maya.
 - 140 mAh LiPo battery
 - Buzzer
 
+![Mayavi concept](mayavi-state-diagram.png)
+
 
 [1]: https://www.sunrom.com/p/tactile-switch-smd-3x6mm-side-press
 
