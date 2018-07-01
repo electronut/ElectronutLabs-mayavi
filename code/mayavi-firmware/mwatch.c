@@ -29,7 +29,7 @@ void mwatch_init(mwatch_cfg_t* p_mwatch_cfg, void (*f)(uint32_t))
     // initialise variables:
 
     // reset time
-    p_mwatch_cfg->time_count = 0;
+    p_mwatch_cfg->seconds = 0;
     // reset display flag
     p_mwatch_cfg->b_pending_refresh = false;
     // set mode
@@ -62,7 +62,7 @@ void mwatch_init(mwatch_cfg_t* p_mwatch_cfg, void (*f)(uint32_t))
 inline void mwatch_tick(mwatch_cfg_t* p_mwatch_cfg)
 {
     // increment time counter
-    p_mwatch_cfg->time_count++;
+    p_mwatch_cfg->seconds++;
 
     // set display flag
     p_mwatch_cfg->b_pending_refresh = true;
@@ -76,6 +76,41 @@ inline void mwatch_tick(mwatch_cfg_t* p_mwatch_cfg)
 inline bool mwatch_is_refresh_pending(mwatch_cfg_t* p_mwatch_cfg)
 {
     return p_mwatch_cfg->b_pending_refresh;
+}
+
+
+/*!
+ * @brief convert seconds to hr/min/sec
+ * @param[in] seconds
+ * @return void
+ * 
+ * Example:
+ * 
+ * 7400 -> (2, 3, 20)
+ * 
+ */
+static inline void seconds_to_time(uint32_t count, uint8_t* hrs, uint8_t* min, 
+                            uint8_t* sec)
+{
+    *hrs = (count / 3600) % 24;
+    *min = (count / 60) % 60;
+    *sec = count % 60;
+}
+
+/*!
+ * @brief convert hr/min/sec to count (seconds)
+ * @param[in] seconds
+ * @return seconds
+ * 
+ * Example:
+ * 
+ * (2, 3, 20) -> 7400
+ * 
+ */
+static inline uint32_t time_to_seconds(uint8_t hrs, uint8_t min, 
+                            uint8_t sec)
+{
+    return 3600*hrs + 60*min + sec;
 }
 
 /*!
@@ -113,15 +148,20 @@ void mwatch_refresh_display(mwatch_cfg_t* p_mwatch_cfg)
 
         case eMWATCH_TIME_DISPLAY: // show current time
         {
+            // convert count to time
+            uint8_t hrs;
+            uint8_t min;
+            uint8_t sec;
+            seconds_to_time(p_mwatch_cfg->seconds, &hrs, &min, &sec);
             char str_count[16];
-            sprintf(str_count, "%d", p_mwatch_cfg->time_count);
+            sprintf(str_count, "%02d:%02d:%02d", hrs, min, sec);
 
             // set text style
             Adafruit_GFX_setTextSize(2);
             Adafruit_GFX_setTextColor(WHITE, BLACK);
 
             // set text position
-            Adafruit_GFX_setCursor(10, 10);
+            Adafruit_GFX_setCursor(15, 20);
 
             // draw string
             for (int i = 0; i < strlen(str_count); i++) 
@@ -148,6 +188,16 @@ void mwatch_refresh_display(mwatch_cfg_t* p_mwatch_cfg)
  * @return void
  */
 void mwatch_sleep(mwatch_cfg_t* p_mwatch_cfg)
+{
+
+}
+
+/*!
+ * @brief cmd - handle serial command 
+ * @param[in] @mwatch_cfg_t
+ * @return void
+ */
+void mwatch_cmd(mwatch_cfg_t* p_mwatch_cfg, char* cmd, uint32_t len)
 {
 
 }

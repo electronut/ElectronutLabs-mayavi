@@ -30,7 +30,7 @@ typedef enum
 typedef struct 
 {
     bool b_pending_refresh;   /**< One shot flag to indicate pending refresh */
-    uint64_t time_count;      /**< time counter */
+    uint32_t seconds;      /**< time counter */
     mwatch_mode_t mode;       /**< Current watch mode (state machine) */
 
     void (*delay_ms)(uint32_t ms);        /**< Pointer to delay ms function */
@@ -72,6 +72,14 @@ void mwatch_refresh_display(mwatch_cfg_t* p_mwatch_cfg);
  * @return void
  */
 void mwatch_sleep(mwatch_cfg_t* p_mwatch_cfg);
+
+/*!
+ * @brief cmd - handle serial command 
+ * @param[in] @mwatch_cfg_t
+ * @return void
+ */
+void mwatch_cmd(mwatch_cfg_t* p_mwatch_cfg, char* cmd, uint32_t len);
+
 
 #ifdef __cplusplus 
 }

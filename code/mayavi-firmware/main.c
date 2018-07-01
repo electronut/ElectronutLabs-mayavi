@@ -408,6 +408,7 @@ static void on_yys_evt(ble_yy_service_t     * p_yy_service,
 /**@snippet [Handling the data received over BLE] */
 static void nus_data_handler(ble_nus_evt_t * p_evt)
 {
+    NRF_LOG_INFO("nus: %d", p_evt->params.rx_data.length);
 
     if (p_evt->type == BLE_NUS_EVT_RX_DATA)
     {
@@ -416,6 +417,7 @@ static void nus_data_handler(ble_nus_evt_t * p_evt)
         NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
         NRF_LOG_HEXDUMP_DEBUG(p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
 
+        mwatch_cmd(&g_mwatch, (char*)p_evt->params.rx_data.p_data, p_evt->params.rx_data.length);
     }
 
 }
@@ -582,7 +584,7 @@ static void on_adv_evt(ble_adv_evt_t ble_adv_evt)
             break;
 
         case BLE_ADV_EVT_IDLE:
-            sleep_mode_enter();
+            //sleep_mode_enter();
             break;
 
         default:
@@ -886,8 +888,8 @@ void twi_init (void)
     ret_code_t err_code;
 
     const nrf_drv_twi_config_t twi_config = {
-       .scl                = 12,
-       .sda                = 13,
+       .scl                = 24,
+       .sda                = 25,
        .frequency          = NRF_DRV_TWI_FREQ_100K,
        .interrupt_priority = APP_IRQ_PRIORITY_HIGH,
        .clear_bus_init     = false
@@ -910,9 +912,12 @@ static void buttons_init()
 {
     ret_code_t err_code;
 
-    err_code = nrf_drv_gpiote_init();
-    APP_ERROR_CHECK(err_code);
-
+    if(nrf_drv_gpiote_is_init() == false)
+    {
+        err_code = nrf_drv_gpiote_init();
+        APP_ERROR_CHECK(err_code);
+    }
+    
     nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
     in_config.pull = NRF_GPIO_PIN_PULLUP;
 

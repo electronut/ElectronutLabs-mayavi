@@ -1,6 +1,9 @@
 {
     "git.ignoreLimitWarning": true,
     "files.associations": {
-        "mwatch_melody.h": "c"
+        "mwatch_melody.h": "c",
+        "*.ipp": "c",
+        "string_view": "c",
+        "functional": "c"
     }
 }
