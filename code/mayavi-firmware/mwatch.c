@@ -10,6 +10,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "nrf_log.h"
+
 #include "mwatch_melody.h"
 #include "mwatch.h"
 
@@ -199,5 +201,19 @@ void mwatch_sleep(mwatch_cfg_t* p_mwatch_cfg)
  */
 void mwatch_cmd(mwatch_cfg_t* p_mwatch_cfg, char* cmd, uint32_t len)
 {
+    char str[64];
+    strncpy(str, cmd, len);
+    str[len] = '\0';
 
+    NRF_LOG_INFO("data:%s", str);
+
+    uint8_t hrs;
+    uint8_t min;
+    uint8_t sec;
+    char cmd1[4];
+    sscanf(str, "%2s %2d:%2d:%2d", cmd1, &hrs, &min, &sec);
+
+    NRF_LOG_INFO("%2d %2d %2d", hrs, min, sec);
+
+    p_mwatch_cfg->seconds = time_to_seconds(hrs, min, sec);
 }
