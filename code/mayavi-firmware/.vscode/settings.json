@@ -4,6 +4,9 @@
         "mwatch_melody.h": "c",
         "*.ipp": "c",
         "string_view": "c",
-        "functional": "c"
+        "functional": "c",
+        "chrono": "c",
+        "limits": "c",
+        "valarray": "c"
     }
 }

@@ -30,8 +30,13 @@ typedef enum
 typedef struct 
 {
     bool b_pending_refresh;   /**< One shot flag to indicate pending refresh */
-    uint32_t seconds;      /**< time counter */
+    bool b_pending_cmd;       /**< One shot flag to indicate pending cmd  */
+
+    uint32_t seconds;         /**< time counter in seconds */
     mwatch_mode_t mode;       /**< Current watch mode (state machine) */
+
+    // last cmd
+    char last_cmd[128];       /**< last cmd isued */
 
     void (*delay_ms)(uint32_t ms);        /**< Pointer to delay ms function */
 } mwatch_cfg_t;

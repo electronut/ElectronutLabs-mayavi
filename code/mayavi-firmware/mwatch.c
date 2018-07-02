@@ -34,6 +34,8 @@ void mwatch_init(mwatch_cfg_t* p_mwatch_cfg, void (*f)(uint32_t))
     p_mwatch_cfg->seconds = 0;
     // reset display flag
     p_mwatch_cfg->b_pending_refresh = false;
+    // reset cmd flag
+    p_mwatch_cfg->b_pending_cmd = false;
     // set mode
     p_mwatch_cfg->mode = eMWATCH_SPLASH;
 
@@ -115,6 +117,19 @@ static inline uint32_t time_to_seconds(uint8_t hrs, uint8_t min,
     return 3600*hrs + 60*min + sec;
 }
 
+static void handle_cmd(mwatch_cfg_t* p_mwatch_cfg)
+{
+    int hrs;
+    int min;
+    int sec;
+    char cmd1[4];
+    sscanf(p_mwatch_cfg->last_cmd, "%2s %2d:%2d:%2d", cmd1, &hrs, &min, &sec);
+
+    NRF_LOG_INFO("%2d %2d %2d", hrs, min, sec);
+
+    p_mwatch_cfg->seconds = time_to_seconds((uint8_t)hrs, (uint8_t)min, (uint8_t)sec);
+}
+
 /*!
  * @brief Refresh display
  * @param[in] @mwatch_cfg_t
@@ -122,6 +137,14 @@ static inline uint32_t time_to_seconds(uint8_t hrs, uint8_t min,
  */
 void mwatch_refresh_display(mwatch_cfg_t* p_mwatch_cfg)
 {
+    // take care of pending commands
+    if (p_mwatch_cfg->b_pending_cmd)
+    {
+        handle_cmd(p_mwatch_cfg);
+        // reset 
+        p_mwatch_cfg->b_pending_cmd = false;
+    }
+
     // display according to mode
     switch(p_mwatch_cfg->mode)
     {
@@ -201,19 +224,11 @@ void mwatch_sleep(mwatch_cfg_t* p_mwatch_cfg)
  */
 void mwatch_cmd(mwatch_cfg_t* p_mwatch_cfg, char* cmd, uint32_t len)
 {
-    char str[64];
-    strncpy(str, cmd, len);
-    str[len] = '\0';
+    strncpy(p_mwatch_cfg->last_cmd, cmd, len);
+    p_mwatch_cfg->last_cmd[len] = '\0';
 
-    NRF_LOG_INFO("data:%s", str);
+    NRF_LOG_INFO("data:%s", p_mwatch_cfg->last_cmd);
 
-    uint8_t hrs;
-    uint8_t min;
-    uint8_t sec;
-    char cmd1[4];
-    sscanf(str, "%2s %2d:%2d:%2d", cmd1, &hrs, &min, &sec);
-
-    NRF_LOG_INFO("%2d %2d %2d", hrs, min, sec);
-
-    p_mwatch_cfg->seconds = time_to_seconds(hrs, min, sec);
+    // set cmd flag
+    p_mwatch_cfg->b_pending_cmd = true;
 }

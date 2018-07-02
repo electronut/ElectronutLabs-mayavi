@@ -974,6 +974,20 @@ int main(void)
     SSD1306_clearDisplay();
     SSD1306_display();
 
+
+    NRF_LOG_INFO(">>>>>>>>>>")
+    char* str = "st 11:35:54";
+    NRF_LOG_INFO("data:%s\n", str);
+
+    uint8_t hrs;
+    uint8_t min;
+    uint8_t sec;
+    char cmd[4];
+    sscanf(str, "%2s %2d:%2d:%2d", cmd, &hrs, &min, &sec);
+
+    NRF_LOG_INFO("%2d %2d %2d\n", hrs, min, sec);
+    NRF_LOG_INFO(">>>>>>>>>>")
+
     // Enter main loop.
     for (;;)
     {
