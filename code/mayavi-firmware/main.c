@@ -142,6 +142,8 @@ static ble_uuid_t m_adv_uuids[]          =                                      
 
 APP_TIMER_DEF(watch_tick_timer_id);
 
+APP_TIMER_DEF(watch_melody_timer_id);
+
 static void advertising_start(bool erase_bonds);
 
 /* Watch instance */
@@ -155,6 +157,13 @@ static void watch_tick_timeout_handler(void *p_context)
     mwatch_tick(&g_mwatch);
 }
 
+
+/**@brief timeout handler for watch melody timer
+ */
+static void watch_melody_timeout_handler(void *p_context)
+{
+    mwatch_melody_tick(&(g_mwatch.melody_config));
+}   
 
 /**@brief Callback function for asserts in the SoftDevice.
  *
@@ -286,16 +295,13 @@ static void timers_init(void)
     // create watch tick timer
     err_code = app_timer_create(&watch_tick_timer_id, 
         APP_TIMER_MODE_REPEATED, watch_tick_timeout_handler);
-        APP_ERROR_CHECK(err_code);
     APP_ERROR_CHECK(err_code);
-
-    /* YOUR_JOB: Create any timers to be used by the application.
-                 Below is an example of how to create a timer.
-                 For every new timer needed, increase the value of the macro APP_TIMER_MAX_TIMERS by
-                 one.
-       ret_code_t err_code;
-       err_code = app_timer_create(&m_app_timer_id, APP_TIMER_MODE_REPEATED, timer_timeout_handler);
-       APP_ERROR_CHECK(err_code); */
+    
+    // create watch tick timer
+    err_code = app_timer_create(&watch_melody_timer_id, 
+        APP_TIMER_MODE_REPEATED, watch_melody_timeout_handler);
+    APP_ERROR_CHECK(err_code);
+    
 }
 
 
@@ -541,6 +547,10 @@ static void application_timers_start(void)
         NULL);
     APP_ERROR_CHECK(err_code);
 
+    // start watch melody timer
+    err_code = app_timer_start(watch_melody_timer_id, APP_TIMER_TICKS(125),
+        NULL);
+    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -973,20 +983,6 @@ int main(void)
 
     SSD1306_clearDisplay();
     SSD1306_display();
-
-
-    NRF_LOG_INFO(">>>>>>>>>>")
-    char* str = "st 11:35:54";
-    NRF_LOG_INFO("data:%s\n", str);
-
-    uint8_t hrs;
-    uint8_t min;
-    uint8_t sec;
-    char cmd[4];
-    sscanf(str, "%2s %2d:%2d:%2d", cmd, &hrs, &min, &sec);
-
-    NRF_LOG_INFO("%2d %2d %2d\n", hrs, min, sec);
-    NRF_LOG_INFO(">>>>>>>>>>")
 
     // Enter main loop.
     for (;;)

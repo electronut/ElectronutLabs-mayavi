@@ -109,6 +109,11 @@ extern "C" {
 #define NOTE_D8  4699
 #define NOTE_DS8 4978
 
+#define DUR_F 8    // full note 
+#define DUR_H 4    // half note
+#define DUR_Q 2    // quarter note
+#define DUR_E 1    // eighth note
+#define DUR_R 0    // rest
 
 /**@brief Max no. of notes  */
 #define MAX_NOTES 128
@@ -116,15 +121,17 @@ extern "C" {
 /**@brief Melody structure  */
 typedef struct
 {
-  uint16_t notes[MAX_NOTES];           /**< notes in melody  */
-  uint8_t durations[MAX_NOTES];          /**< note durations: 4 = quarter note, 8 = eighth note, etc. */
-  uint8_t length;                          /**< Number of notes used */
-} mwatch_melody_t;
+  uint16_t notes[MAX_NOTES];              /**< notes in melody  */
+  uint8_t durations[MAX_NOTES];           /**< note durations: 4 = quarter note, 8 = eighth note, etc. */
+  uint8_t length;                         /**< Number of notes used */
+  uint8_t curr_note;                      /**< Index of current note */
+} mwatch_melody_t; 
 
 /**@brief Melody module configuration  */
 typedef struct
 {
   uint32_t pin;                       /**< Pin used for output */
+  mwatch_melody_t curr_melody;       /**< Ptr to current melody */
 } mwatch_melody_config_t;
 
 /*!
@@ -139,7 +146,16 @@ void mwatch_melody_init(mwatch_melody_config_t* melody_config);
  * @param[in] melody Melody to play
  * @return void
  */
-void mwatch_melody_play(mwatch_melody_config_t* melody_config, mwatch_melody_t* melody);
+void mwatch_melody_play(mwatch_melody_config_t* melody_config);
+
+/*!
+ * @brief Called for every melody timer tick
+ * 
+ * @param[in] @mwatch_cfg_t
+ * @return void
+ */
+void mwatch_melody_tick(mwatch_melody_config_t* melody_config);
+
 
 #ifdef __cplusplus 
 }

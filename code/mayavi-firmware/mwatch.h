@@ -13,6 +13,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "mwatch_melody.h"
+
 #ifdef __cplusplus 
 extern “C” { 
 #endif
@@ -39,6 +41,8 @@ typedef struct
     char last_cmd[128];       /**< last cmd isued */
 
     void (*delay_ms)(uint32_t ms);        /**< Pointer to delay ms function */
+
+    mwatch_melody_config_t melody_config;  /**< melody configuration */
 } mwatch_cfg_t;
 
 /*!
@@ -56,6 +60,7 @@ void mwatch_init(mwatch_cfg_t* p_mwatch_cfg, void (*delay_ms)(uint32_t));
  * @return void
  */
 void mwatch_tick(mwatch_cfg_t* p_mwatch_cfg);
+
 
 /*!
  * @brief Is a display refresh pending?
