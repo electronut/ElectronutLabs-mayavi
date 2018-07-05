@@ -25,8 +25,17 @@ typedef enum
     eMWATCH_SPLASH = 0,
     eMWATCH_TIME_DISPLAY, 
     eMWATCH_SLEEP,
-    eMWATCH_SHOW_TEXT
+    eMWATCH_SHOW_TEXT,
+    eMWATCH_DRAW
 } mwatch_mode_t;
+
+/**@brief Watch events  */
+typedef enum
+{
+    eMWATCH_EVT_NULL = 0,        /**< no event */
+    eMWATCH_EVT_LEFT,        /**< left button press */
+    eMWATCH_EVT_RIGHT        /**< right button press */
+} mwatch_evt_t;
 
 /**@brief Mayavi Watch configuration structure. */
 typedef struct 
@@ -43,6 +52,11 @@ typedef struct
     void (*delay_ms)(uint32_t ms);        /**< Pointer to delay ms function */
 
     mwatch_melody_config_t melody_config;  /**< melody configuration */
+
+    uint16_t x_pos;                         /**< draw mode last x position*/
+    uint16_t y_pos;                         /**< draw mode last y position*/
+    
+    mwatch_evt_t event;                     /**< last event */
 } mwatch_cfg_t;
 
 /*!
@@ -90,6 +104,19 @@ void mwatch_sleep(mwatch_cfg_t* p_mwatch_cfg);
  */
 void mwatch_cmd(mwatch_cfg_t* p_mwatch_cfg, char* cmd, uint32_t len);
 
+/*!
+ * @brief set event
+ * @param[in] @mwatch_cfg_t
+ * @return void
+ */
+void mwatch_set_event(mwatch_cfg_t* p_mwatch_cfg, mwatch_evt_t event);
+
+/*!
+ * @brief clear events
+ * @param[in] @mwatch_cfg_t
+ * @return void
+ */
+void mwatch_clear_event(mwatch_cfg_t* p_mwatch_cfg);
 
 #ifdef __cplusplus 
 }

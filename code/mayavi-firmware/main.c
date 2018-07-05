@@ -770,6 +770,18 @@ static void bsp_event_handler(bsp_event_t event)
             }
             break; // BSP_EVENT_KEY_0
 
+        case  BSP_EVENT_KEY_1:
+            {
+                mwatch_event(&g_mwatch, eMWATCH_EVT_LEFT);
+            }
+            break;
+
+        case  BSP_EVENT_KEY_2:
+            {
+                mwatch_event(&g_mwatch, eMWATCH_EVT_RIGHT);
+            }
+            break;
+
         default:
             break;
     }

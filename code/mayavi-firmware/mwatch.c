@@ -34,8 +34,12 @@ void mwatch_init(mwatch_cfg_t* p_mwatch_cfg, void (*f)(uint32_t))
     // reset cmd flag
     p_mwatch_cfg->b_pending_cmd = false;
     // set mode
-    p_mwatch_cfg->mode = eMWATCH_SPLASH;
+    p_mwatch_cfg->mode = eMWATCH_DRAW; // eMWATCH_SPLASH;
 
+    // set coords 
+    p_mwatch_cfg->x_pos = 0;
+    p_mwatch_cfg->y_pos = 0;
+    
     // set delay function
     p_mwatch_cfg->delay_ms = f;
 
@@ -193,6 +197,39 @@ void mwatch_refresh_display(mwatch_cfg_t* p_mwatch_cfg)
         }
         break;
 
+        case eMWATCH_DRAW: // drawing mode
+        {
+            // line offset in pixels
+            uint16_t offset = 2;
+            
+            // draw line to the current cursor position
+            if (p_mwatch_cfg->event == eMWATCH_EVT_LEFT)
+            {
+                // new pos
+                uint16_t x_pos = p_mwatch_cfg->x_pos + offset;
+                Adafruit_GFX_drawLine(p_mwatch_cfg->x_pos, p_mwatch_cfg->y_pos,
+                                x_pos, p_mwatch_cfg->y_pos, WHITE);
+                // save 
+                p_mwatch_cfg->x_pos = x_pos;
+            }
+            else if (p_mwatch_cfg->event == eMWATCH_EVT_RIGHT)
+            {
+                // new pos
+                uint16_t y_pos = p_mwatch_cfg->y_pos + offset;
+                Adafruit_GFX_drawLine(p_mwatch_cfg->x_pos, p_mwatch_cfg->y_pos,
+                                p_mwatch_cfg->x_pos, y_pos, WHITE);
+                // save 
+                p_mwatch_cfg->y_pos = y_pos;
+            }
+
+            // clear event
+            mwatch_clear_event(p_mwatch_cfg);
+
+            // show
+            SSD1306_display();
+        }
+        break;
+
         default:
             break;
     }
@@ -225,4 +262,25 @@ void mwatch_cmd(mwatch_cfg_t* p_mwatch_cfg, char* cmd, uint32_t len)
 
     // set cmd flag
     p_mwatch_cfg->b_pending_cmd = true;
+}
+
+/*!
+ * @brief set event
+ * @param[in] @mwatch_cfg_t
+ * @return void
+ */
+void mwatch_event(mwatch_cfg_t* p_mwatch_cfg, mwatch_evt_t event)
+{
+    p_mwatch_cfg->event = event;
+    p_mwatch_cfg->b_pending_refresh = true;
+}
+
+/*!
+ * @brief clear events
+ * @param[in] @mwatch_cfg_t
+ * @return void
+ */
+void mwatch_clear_event(mwatch_cfg_t* p_mwatch_cfg)
+{
+    p_mwatch_cfg->event = eMWATCH_EVT_NULL;
 }

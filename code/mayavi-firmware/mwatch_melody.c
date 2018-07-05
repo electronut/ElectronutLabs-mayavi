@@ -116,6 +116,9 @@ void mwatch_melody_tick(mwatch_melody_config_t* melody_config)
             ret_code_t err_code = app_pwm_uninit(&PWM1);
             APP_ERROR_CHECK(err_code);
 
+            // set pin to LOW
+            nrf_gpio_pin_clear(melody_config->pin);
+
             // reset count
             count = 0;
 
