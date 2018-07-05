@@ -1,4 +1,4 @@
-update=2018 June 26, Tuesday 11:40:52
+update=2018 July 05, Thursday 18:43:52
 version=1
 last_client=kicad
 [pcbnew]
@@ -70,5 +70,3 @@ LibName28=atmel
 LibName29=contrib
 LibName30=valves
 LibName31=mayavi
-LibName32=bluestone_tracker_ Lipo
-LibName33=bluestone_tracker
